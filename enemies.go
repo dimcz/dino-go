@@ -21,7 +21,7 @@ func distance(start float64) float64 {
 	}
 }
 
-func setEnemies() *enemies {
+func newEnemies() *enemies {
 	cacti := make([]*cactus, maxCountOfCacti)
 	x := Width
 	for i := 0; i < maxCountOfCacti; i++ {

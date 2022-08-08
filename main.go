@@ -50,7 +50,7 @@ func run() {
 	txt.Color = colornames.Black
 
 	r := newRoad()
-	e := setEnemies()
+	e := newEnemies()
 
 	for !win.Closed() {
 		win.Clear(colornames.White)

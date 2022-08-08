@@ -42,3 +42,8 @@ func (r *road) draw(target *pixelgl.Window, step float64) {
 
 	r.pos += step
 }
+
+func matrix(rect pixel.Rect, delta float64) pixel.Matrix {
+	vec := pixel.V(delta+rect.W()/2, rect.H()/2+roadPosition)
+	return pixel.IM.Moved(vec)
+}

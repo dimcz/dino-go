@@ -31,15 +31,6 @@ func loadPicture(path string) (pixel.Picture, error) {
 	return pixel.PictureDataFromImage(img), nil
 }
 
-func matrix(rect pixel.Rect, delta float64) pixel.Matrix {
-	vec := pixel.V(delta+rect.W()/2, rect.H()/2+roadPosition)
-	return pixel.IM.Moved(vec)
-}
-
-func float64n(low, high float64) float64 {
-	return low + rand.Float64()*(high-low)
-}
-
 func loadTTF(path string, size float64) (font.Face, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -64,4 +55,8 @@ func loadTTF(path string, size float64) (font.Face, error) {
 		Size:              size,
 		GlyphCacheEntries: 1,
 	}), nil
+}
+
+func float64n(low, high float64) float64 {
+	return low + rand.Float64()*(high-low)
 }
