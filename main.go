@@ -63,6 +63,10 @@ func run() {
 		switch {
 		case win.Pressed(pixelgl.KeyQ), win.Pressed(pixelgl.KeyEscape):
 			win.SetClosed(true)
+		case win.Pressed(pixelgl.KeySpace):
+			if d.state != JUMP {
+				d.jump()
+			}
 		}
 
 		score += gameSpeed / 8

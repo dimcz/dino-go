@@ -11,6 +11,14 @@ import (
 )
 
 const (
+	animationPause = 5
+	runPosition    = 100.0
+	textPadding    = 5.0
+	dinoPadding    = 30.0
+	jumpPower      = 10.0
+)
+
+const (
 	RUN = iota
 	JUMP
 )
@@ -25,6 +33,8 @@ type dino struct {
 
 	name  string
 	color string
+	y     float64
+	power float64
 	state int
 	index int
 }
@@ -34,6 +44,8 @@ func initDino(name, color string) (*dino, error) {
 		sprites: make([]*pixel.Sprite, 3),
 		color:   color,
 		name:    name,
+		y:       runPosition,
+		power:   jumpPower,
 		state:   RUN,
 	}
 
@@ -62,25 +74,37 @@ func initDino(name, color string) (*dino, error) {
 
 func (d *dino) update() {
 	if d.state == RUN {
-		d.sprite = d.sprites[d.index/5]
+		d.sprite = d.sprites[d.index/animationPause]
 		d.index += 1
-		if d.index >= 10 {
+		if d.index >= animationPause*2 {
 			d.index = 0
 		}
+	} else {
+		d.jump()
+	}
+}
+
+func (d *dino) jump() {
+	if d.state == JUMP {
+		d.y += d.power * gameSpeed / 4
+		d.power -= gameSpeed / 16
+		if d.y <= runPosition {
+			d.y = runPosition
+			d.state = RUN
+			d.power = jumpPower
+		}
+	} else {
+		d.state = JUMP
+		d.sprite = d.sprites[2]
 	}
 }
 
 func (d *dino) draw(target *pixelgl.Window, atlas *text.Atlas) {
 	d.update()
 
-	shift := 100.0
-	if d.state == JUMP {
-		shift = 200.0
-	}
-
 	vec := pixel.V(
-		d.sprite.Frame().W()/2+30,
-		d.sprite.Frame().H()/2+shift,
+		d.sprite.Frame().W()/2+dinoPadding,
+		d.sprite.Frame().H()/2+d.y,
 	)
 	d.sprite.Draw(target, pixel.IM.Moved(vec))
 
@@ -89,8 +113,8 @@ func (d *dino) draw(target *pixelgl.Window, atlas *text.Atlas) {
 	_, _ = txt.WriteString(d.name)
 
 	vec = pixel.V(
-		d.sprite.Frame().Max.X-d.sprite.Frame().W()/2-txt.Orig.X/2+30,
-		d.sprite.Frame().Max.Y+shift+5)
+		d.sprite.Frame().Max.X-d.sprite.Frame().W()/2-txt.Orig.X/2+dinoPadding,
+		d.sprite.Frame().Max.Y+d.y+textPadding)
 
 	txt.Draw(target, pixel.IM.Moved(vec))
 }
