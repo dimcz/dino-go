@@ -11,8 +11,9 @@ const (
 )
 
 type road struct {
-	pic pixel.Picture
-	pos float64
+	pic         pixel.Picture
+	left, right *pixel.Sprite
+	pos         float64
 }
 
 func newRoad() *road {
@@ -21,7 +22,11 @@ func newRoad() *road {
 		panic(err)
 	}
 
-	return &road{pic: pic}
+	return &road{
+		pic:   pic,
+		left:  pixel.NewSprite(nil, pixel.ZR),
+		right: pixel.NewSprite(nil, pixel.ZR),
+	}
 }
 
 func (r *road) draw(target *pixelgl.Window, step float64) {
@@ -29,16 +34,16 @@ func (r *road) draw(target *pixelgl.Window, step float64) {
 		x := r.pos + Width - r.pic.Bounds().Max.X
 		if x < Width {
 			rect := pixel.R(0, 0, x, r.pic.Bounds().Max.Y)
-			sprite := pixel.NewSprite(r.pic, rect)
-			sprite.Draw(target, matrix(rect, Width-x))
+			r.right.Set(r.pic, rect)
+			r.right.Draw(target, matrix(rect, Width-x))
 		} else {
 			r.pos = 0
 		}
 	}
 
 	rect := pixel.R(r.pos, 0, r.pos+Width, r.pic.Bounds().Max.Y)
-	sprite := pixel.NewSprite(r.pic, rect)
-	sprite.Draw(target, matrix(rect, 0))
+	r.left.Set(r.pic, rect)
+	r.left.Draw(target, matrix(rect, 0))
 
 	r.pos += step
 }
