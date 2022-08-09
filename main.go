@@ -66,7 +66,7 @@ func run() {
 			gameSpeed += 1
 		}
 
-		printText(win, txt, 10, Height-10,
+		printInfo(win, txt, 10, Height-10,
 			fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
 
 		r.draw(win, gameSpeed)
@@ -76,7 +76,7 @@ func run() {
 	}
 }
 
-func printText(win *pixelgl.Window, txt *text.Text, x, y float64, s string) {
+func printInfo(win *pixelgl.Window, txt *text.Text, x, y float64, s string) {
 	txt.Clear()
 	_, _ = txt.WriteString(s)
 	vec := pixel.V(x, y-txt.LineHeight)
