@@ -44,6 +44,12 @@ func (e *enemies) draw(target *pixelgl.Window, step float64) {
 	}
 }
 
-func (e *enemies) checkCollisions(_ *dino) bool {
+func (e *enemies) checkCollisions(d *dino) bool {
+	for _, c := range e.cacti {
+		if c.actual().Intersects(d.actual()) {
+			return true
+		}
+	}
+
 	return false
 }

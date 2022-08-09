@@ -46,3 +46,12 @@ func (c *cactus) draw(target *pixelgl.Window) {
 	)
 	c.sprite.Draw(target, pixel.IM.Moved(vec))
 }
+
+func (c *cactus) actual() pixel.Rect {
+	return pixel.R(
+		c.x,
+		cactusPosition,
+		c.x+c.sprite.Frame().W(),
+		cactusPosition+c.sprite.Frame().H(),
+	)
+}

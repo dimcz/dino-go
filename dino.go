@@ -118,3 +118,12 @@ func (d *dino) draw(target *pixelgl.Window, atlas *text.Atlas, gameSpeed float64
 
 	txt.Draw(target, pixel.IM.Moved(vec))
 }
+
+func (d *dino) actual() pixel.Rect {
+	return pixel.R(
+		dinoPadding,
+		d.y,
+		dinoPadding+d.sprite.Frame().W(),
+		d.y+d.sprite.Frame().W(),
+	)
+}
