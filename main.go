@@ -62,12 +62,18 @@ func run() {
 		win.Clear(colornames.White)
 
 		switch {
-		case win.Pressed(pixelgl.KeyQ), win.Pressed(pixelgl.KeyEscape):
+		case win.JustPressed(pixelgl.KeyQ), win.Pressed(pixelgl.KeyEscape):
 			win.SetClosed(true)
-		case win.Pressed(pixelgl.KeySpace):
+		case win.JustPressed(pixelgl.KeySpace):
 			if d.state != JUMP {
 				d.jump(gameSpeed)
 			}
+		case win.JustPressed(pixelgl.KeyR) && isLoosing:
+			d.reset()
+			e.reset()
+			r.reset()
+			gameSpeed, score, scoreSpeedUp = 4.0, 0.0, 100.0
+			isLoosing = false
 		}
 
 		printInfo(win, infoText, 10, Height-10,

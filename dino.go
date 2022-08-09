@@ -72,6 +72,12 @@ func initDino(name, color string) (*dino, error) {
 	return &d, nil
 }
 
+func (d *dino) reset() {
+	d.y = runPosition
+	d.power = jumpPower
+	d.state = RUN
+}
+
 func (d *dino) update(gameSpeed float64) {
 	if d.state == RUN {
 		d.sprite = d.sprites[d.index/animationPause]
