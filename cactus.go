@@ -18,10 +18,9 @@ var pics [6]pixel.Picture
 func init() {
 	var err error
 	for i := 0; i < 6; i++ {
-		n := fmt.Sprintf("assets/images/cactus/%d.png", i+1)
-		pics[i], err = loadPicture(n)
+		pics[i], err = loadPicture(fmt.Sprintf("assets/images/cactus/%d.png", i+1))
 		if err != nil {
-			log.Fatalf("cannot load picture %s: %s", n, err)
+			log.Fatalf("error loading: %s", err)
 		}
 	}
 }

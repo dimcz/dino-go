@@ -21,7 +21,7 @@ type road struct {
 func initRoad() *road {
 	pic, err := loadPicture(roadImage)
 	if err != nil {
-		log.Fatalf("cannot load picure %s: %s", roadImage, err)
+		log.Fatalf("error loading: %s", err)
 	}
 
 	return &road{

@@ -17,7 +17,10 @@ const (
 	Height = 720.0
 	Width  = 1280.0
 
-	fontPath = "assets/fonts/intuitive.ttf"
+	fontPath   = "assets/fonts/intuitive.ttf"
+	normalSize = 26.0
+	smallSize  = 16.0
+	bigSize    = 100.0
 )
 
 func main() {
@@ -31,22 +34,9 @@ func run() {
 
 	frameTick := setFPS(60)
 
-	atlasBig, err := newTTFAtlas(fontPath, 100)
-	if err != nil {
-		log.Fatalf("cannot load font %s: %s", fontPath, err)
-	}
+	fonts := loadFonts()
 
-	atlas, err := newTTFAtlas(fontPath, 26)
-	if err != nil {
-		log.Fatalf("cannot load font %s: %s", fontPath, err)
-	}
-
-	atlasSmall, err := newTTFAtlas(fontPath, 16)
-	if err != nil {
-		log.Fatalf("cannot load font %s: %s", fontPath, err)
-	}
-
-	infoText := text.New(pixel.V(0, 0), atlas)
+	infoText := text.New(pixel.V(0, 0), fonts["normal"])
 	infoText.Color = colornames.Black
 
 	r := initRoad()
@@ -54,7 +44,7 @@ func run() {
 
 	d, err := initDino("Fluffy", "default")
 	if err != nil {
-		log.Fatalf("cannot initialize element: %s", err)
+		log.Fatalf("error loading: %s", err)
 	}
 
 	gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
@@ -83,7 +73,7 @@ func run() {
 			fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
 
 		if isLoosing {
-			txt := text.New(pixel.V(0, 0), atlasBig)
+			txt := text.New(pixel.V(0, 0), fonts["big"])
 			txt.Color = colornames.Red
 			_, _ = txt.WriteString("You DIED")
 
@@ -97,7 +87,7 @@ func run() {
 				gameSpeed += 1
 			}
 
-			d.draw(win, atlasSmall, gameSpeed)
+			d.draw(win, fonts["small"], gameSpeed)
 
 			r.draw(win, gameSpeed)
 			e.draw(win, gameSpeed)
@@ -141,4 +131,27 @@ func setFPS(fps int) *time.Ticker {
 	}
 
 	return time.NewTicker(time.Second / time.Duration(fps))
+}
+
+func loadFonts() map[string]*text.Atlas {
+	fonts := make(map[string]*text.Atlas, 3)
+
+	var err error
+
+	fonts["big"], err = newTTFAtlas(fontPath, bigSize)
+	if err != nil {
+		log.Fatalf("error loading (%0.0f): %s", bigSize, err)
+	}
+
+	fonts["normal"], err = newTTFAtlas(fontPath, normalSize)
+	if err != nil {
+		log.Fatalf("error loading (%0.0f): %s", normalSize, err)
+	}
+
+	fonts["small"], err = newTTFAtlas(fontPath, smallSize)
+	if err != nil {
+		log.Fatalf("error loading (%0.0f): %s", smallSize, err)
+	}
+
+	return fonts
 }
