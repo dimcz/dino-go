@@ -34,9 +34,12 @@ func run() {
 
 	frameTick := setFPS(60)
 
-	fonts := loadFonts()
+	at, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
+	if err != nil {
+		log.Fatalf("error loading: %s", err)
+	}
 
-	infoText := text.New(pixel.V(0, 0), fonts["normal"])
+	infoText := text.New(pixel.V(0, 0), at[normalSize])
 	infoText.Color = colornames.Black
 
 	r := initRoad()
@@ -80,7 +83,7 @@ gameLoop:
 			fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
 
 		if isLoosing {
-			txt := text.New(pixel.V(0, 0), fonts["big"])
+			txt := text.New(pixel.V(0, 0), at[bigSize])
 			txt.Color = colornames.Red
 			_, _ = txt.WriteString("You DIED")
 
@@ -94,7 +97,7 @@ gameLoop:
 				gameSpeed += 1
 			}
 
-			d.draw(win, fonts["small"], gameSpeed)
+			d.draw(win, at[smallSize], gameSpeed)
 
 			r.draw(win, gameSpeed)
 			e.draw(win, gameSpeed)
@@ -141,27 +144,4 @@ func setFPS(fps int) *time.Ticker {
 	}
 
 	return time.NewTicker(time.Second / time.Duration(fps))
-}
-
-func loadFonts() map[string]*text.Atlas {
-	fonts := make(map[string]*text.Atlas, 3)
-
-	var err error
-
-	fonts["big"], err = newTTFAtlas(fontPath, bigSize)
-	if err != nil {
-		log.Fatalf("error loading (%0.0f): %s", bigSize, err)
-	}
-
-	fonts["normal"], err = newTTFAtlas(fontPath, normalSize)
-	if err != nil {
-		log.Fatalf("error loading (%0.0f): %s", normalSize, err)
-	}
-
-	fonts["small"], err = newTTFAtlas(fontPath, smallSize)
-	if err != nil {
-		log.Fatalf("error loading (%0.0f): %s", smallSize, err)
-	}
-
-	return fonts
 }

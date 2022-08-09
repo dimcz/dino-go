@@ -11,7 +11,6 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/text"
 	"github.com/golang/freetype/truetype"
-	"golang.org/x/image/font"
 )
 
 func loadPicture(path string) (pixel.Picture, error) {
@@ -32,7 +31,7 @@ func loadPicture(path string) (pixel.Picture, error) {
 	return pixel.PictureDataFromImage(img), nil
 }
 
-func loadTTF(path string, size float64) (font.Face, error) {
+func loadTTF(path string) (*truetype.Font, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -52,18 +51,25 @@ func loadTTF(path string, size float64) (font.Face, error) {
 		return nil, err
 	}
 
-	return truetype.NewFace(fnt, &truetype.Options{
-		Size:              size,
-		GlyphCacheEntries: 1,
-	}), nil
+	return fnt, nil
 }
 
-func newTTFAtlas(path string, size float64) (*text.Atlas, error) {
-	face, err := loadTTF(path, size)
+func atlasTable(path string, sizes []float64) (map[float64]*text.Atlas, error) {
+	fnt, err := loadTTF(path)
 	if err != nil {
 		return nil, err
 	}
-	return text.NewAtlas(face, text.ASCII), nil
+
+	ht := make(map[float64]*text.Atlas, len(sizes))
+	for _, s := range sizes {
+		face := truetype.NewFace(fnt, &truetype.Options{
+			Size:              s,
+			GlyphCacheEntries: 1,
+		})
+		ht[s] = text.NewAtlas(face, text.ASCII)
+	}
+
+	return ht, nil
 }
 
 func float64n(low, high float64) float64 {
