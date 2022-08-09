@@ -49,8 +49,8 @@ func run() {
 	txt := text.New(pixel.V(0, 0), atlas)
 	txt.Color = colornames.Black
 
-	r := newRoad()
-	e := newEnemies()
+	r := initRoad()
+	e := initEnemies()
 
 	for !win.Closed() {
 		win.Clear(colornames.White)

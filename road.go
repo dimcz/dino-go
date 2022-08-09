@@ -16,7 +16,7 @@ type road struct {
 	pos         float64
 }
 
-func newRoad() *road {
+func initRoad() *road {
 	pic, err := loadPicture(roadImage)
 	if err != nil {
 		panic(err)

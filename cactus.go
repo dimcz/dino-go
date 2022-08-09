@@ -29,7 +29,7 @@ type cactus struct {
 	x      float64
 }
 
-func newCactus(x float64) *cactus {
+func initCactus(x float64) *cactus {
 	pic := pics[rand.Intn(6)]
 	sprite := pixel.NewSprite(pic, pic.Bounds())
 
