@@ -72,7 +72,7 @@ func initDino(name, color string) (*dino, error) {
 	return &d, nil
 }
 
-func (d *dino) update() {
+func (d *dino) update(gameSpeed float64) {
 	if d.state == RUN {
 		d.sprite = d.sprites[d.index/animationPause]
 		d.index += 1
@@ -80,11 +80,11 @@ func (d *dino) update() {
 			d.index = 0
 		}
 	} else {
-		d.jump()
+		d.jump(gameSpeed)
 	}
 }
 
-func (d *dino) jump() {
+func (d *dino) jump(gameSpeed float64) {
 	if d.state == JUMP {
 		d.y += d.power * gameSpeed / 4
 		d.power -= gameSpeed / 16
@@ -99,8 +99,8 @@ func (d *dino) jump() {
 	}
 }
 
-func (d *dino) draw(target *pixelgl.Window, atlas *text.Atlas) {
-	d.update()
+func (d *dino) draw(target *pixelgl.Window, atlas *text.Atlas, gameSpeed float64) {
+	d.update(gameSpeed)
 
 	vec := pixel.V(
 		d.sprite.Frame().W()/2+dinoPadding,

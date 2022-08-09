@@ -17,12 +17,6 @@ const (
 	Width  = 1280.0
 )
 
-var (
-	gameSpeed    = 4.0
-	score        = 0.0
-	scoreSpeedUp = 100.0
-)
-
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
@@ -57,6 +51,8 @@ func run() {
 		panic(err)
 	}
 
+	gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
+
 	for !win.Closed() {
 		win.Clear(colornames.White)
 
@@ -65,7 +61,7 @@ func run() {
 			win.SetClosed(true)
 		case win.Pressed(pixelgl.KeySpace):
 			if d.state != JUMP {
-				d.jump()
+				d.jump(gameSpeed)
 			}
 		}
 
@@ -78,7 +74,7 @@ func run() {
 		printInfo(win, txt, 10, Height-10,
 			fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
 
-		d.draw(win, atlasSmall)
+		d.draw(win, atlasSmall, gameSpeed)
 
 		r.draw(win, gameSpeed)
 		e.draw(win, gameSpeed)
