@@ -51,6 +51,7 @@ func run() {
 
 	isLoosing := false
 
+gameLoop:
 	for !win.Closed() {
 		win.Clear(colornames.White)
 
@@ -58,15 +59,21 @@ func run() {
 		case win.JustPressed(pixelgl.KeyQ), win.Pressed(pixelgl.KeyEscape):
 			win.SetClosed(true)
 		case win.JustPressed(pixelgl.KeySpace):
+			if isLoosing {
+				d.reset()
+				e.reset()
+				r.reset()
+				gameSpeed, score, scoreSpeedUp = 4.0, 0.0, 100.0
+				isLoosing = false
+
+				win.UpdateInput()
+
+				continue gameLoop
+			}
+
 			if d.state != JUMP {
 				d.jump(gameSpeed)
 			}
-		case win.JustPressed(pixelgl.KeyR) && isLoosing:
-			d.reset()
-			e.reset()
-			r.reset()
-			gameSpeed, score, scoreSpeedUp = 4.0, 0.0, 100.0
-			isLoosing = false
 		}
 
 		printInfo(win, infoText, 10, Height-10,
@@ -92,7 +99,10 @@ func run() {
 			r.draw(win, gameSpeed)
 			e.draw(win, gameSpeed)
 
-			isLoosing = e.checkCollisions(d)
+			if e.checkCollisions(d) {
+				isLoosing = true
+				win.UpdateInput()
+			}
 		}
 
 		win.Update()
