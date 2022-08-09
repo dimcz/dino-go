@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"time"
@@ -15,6 +16,8 @@ import (
 const (
 	Height = 720.0
 	Width  = 1280.0
+
+	fontPath = "assets/fonts/intuitive.ttf"
 )
 
 func main() {
@@ -28,19 +31,19 @@ func run() {
 
 	frameTick := setFPS(60)
 
-	atlasBig, err := newTTFAtlas("assets/fonts/intuitive.ttf", 100)
+	atlasBig, err := newTTFAtlas(fontPath, 100)
 	if err != nil {
-		panic(err)
+		log.Fatalf("cannot load font %s: %s", fontPath, err)
 	}
 
-	atlas, err := newTTFAtlas("assets/fonts/intuitive.ttf", 26)
+	atlas, err := newTTFAtlas(fontPath, 26)
 	if err != nil {
-		panic(err)
+		log.Fatalf("cannot load font %s: %s", fontPath, err)
 	}
 
-	atlasSmall, err := newTTFAtlas("assets/fonts/intuitive.ttf", 16)
+	atlasSmall, err := newTTFAtlas(fontPath, 16)
 	if err != nil {
-		panic(err)
+		log.Fatalf("cannot load font %s: %s", fontPath, err)
 	}
 
 	infoText := text.New(pixel.V(0, 0), atlas)
@@ -51,7 +54,7 @@ func run() {
 
 	d, err := initDino("Fluffy", "default")
 	if err != nil {
-		panic(err)
+		log.Fatalf("cannot initialize element: %s", err)
 	}
 
 	gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
@@ -126,7 +129,7 @@ func initScreen(title string) *pixelgl.Window {
 
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
-		panic(err)
+		log.Fatalf("cannot create new window: %s", err)
 	}
 
 	return win

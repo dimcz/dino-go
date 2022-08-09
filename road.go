@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 )
@@ -19,7 +21,7 @@ type road struct {
 func initRoad() *road {
 	pic, err := loadPicture(roadImage)
 	if err != nil {
-		panic(err)
+		log.Fatalf("cannot load picure %s: %s", roadImage, err)
 	}
 
 	return &road{

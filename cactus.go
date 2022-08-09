@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 
 	"github.com/faiface/pixel"
@@ -17,9 +18,10 @@ var pics [6]pixel.Picture
 func init() {
 	var err error
 	for i := 0; i < 6; i++ {
-		pics[i], err = loadPicture(fmt.Sprintf("assets/images/cactus/%d.png", i+1))
+		n := fmt.Sprintf("assets/images/cactus/%d.png", i+1)
+		pics[i], err = loadPicture(n)
 		if err != nil {
-			panic(err)
+			log.Fatalf("cannot load picture %s: %s", n, err)
 		}
 	}
 }
