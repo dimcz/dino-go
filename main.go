@@ -26,22 +26,25 @@ func main() {
 func run() {
 	win := initScreen("Dino Game!")
 
-	face, err := loadTTF("assets/fonts/intuitive.ttf", 26)
-	if err != nil {
-		panic(err)
-	}
-
 	frameTick := setFPS(60)
 
-	atlas := text.NewAtlas(face, text.ASCII)
-	txt := text.New(pixel.V(0, 0), atlas)
-	txt.Color = colornames.Black
-
-	faceSmall, err := loadTTF("assets/fonts/intuitive.ttf", 16)
+	atlasBig, err := newTTFAtlas("assets/fonts/intuitive.ttf", 100)
 	if err != nil {
 		panic(err)
 	}
-	atlasSmall := text.NewAtlas(faceSmall, text.ASCII)
+
+	atlas, err := newTTFAtlas("assets/fonts/intuitive.ttf", 26)
+	if err != nil {
+		panic(err)
+	}
+
+	atlasSmall, err := newTTFAtlas("assets/fonts/intuitive.ttf", 16)
+	if err != nil {
+		panic(err)
+	}
+
+	infoText := text.New(pixel.V(0, 0), atlas)
+	infoText.Color = colornames.Black
 
 	r := initRoad()
 	e := initEnemies()
@@ -52,6 +55,8 @@ func run() {
 	}
 
 	gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
+
+	isLoosing := false
 
 	for !win.Closed() {
 		win.Clear(colornames.White)
@@ -65,19 +70,31 @@ func run() {
 			}
 		}
 
-		score += gameSpeed / 8
-		if score > scoreSpeedUp {
-			scoreSpeedUp += gameSpeed * 50
-			gameSpeed += 1
-		}
-
-		printInfo(win, txt, 10, Height-10,
+		printInfo(win, infoText, 10, Height-10,
 			fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
 
-		d.draw(win, atlasSmall, gameSpeed)
+		if isLoosing {
+			txt := text.New(pixel.V(0, 0), atlasBig)
+			txt.Color = colornames.Red
+			_, _ = txt.WriteString("You DIED")
 
-		r.draw(win, gameSpeed)
-		e.draw(win, gameSpeed)
+			vec := win.Bounds().Center().Sub(pixel.V(txt.Bounds().W()/2, txt.LineHeight/2))
+			txt.Draw(win, pixel.IM.Moved(vec))
+		} else {
+
+			score += gameSpeed / 8
+			if score > scoreSpeedUp {
+				scoreSpeedUp += gameSpeed * 50
+				gameSpeed += 1
+			}
+
+			d.draw(win, atlasSmall, gameSpeed)
+
+			r.draw(win, gameSpeed)
+			e.draw(win, gameSpeed)
+
+			isLoosing = e.checkCollisions(d)
+		}
 
 		win.Update()
 

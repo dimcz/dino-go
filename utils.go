@@ -9,6 +9,7 @@ import (
 	_ "image/png"
 
 	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/text"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 )
@@ -55,6 +56,14 @@ func loadTTF(path string, size float64) (font.Face, error) {
 		Size:              size,
 		GlyphCacheEntries: 1,
 	}), nil
+}
+
+func newTTFAtlas(path string, size float64) (*text.Atlas, error) {
+	face, err := loadTTF(path, size)
+	if err != nil {
+		return nil, err
+	}
+	return text.NewAtlas(face, text.ASCII), nil
 }
 
 func float64n(low, high float64) float64 {

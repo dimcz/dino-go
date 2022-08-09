@@ -43,3 +43,7 @@ func (e *enemies) draw(target *pixelgl.Window, step float64) {
 		v.x -= step
 	}
 }
+
+func (e *enemies) checkCollisions(_ *dino) bool {
+	return false
+}
