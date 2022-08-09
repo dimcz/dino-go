@@ -1,4 +1,4 @@
-module dino-go
+module github.com/dimcz/dino-go
 
 go 1.18
 
