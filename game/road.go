@@ -1,15 +1,10 @@
-package main
+package game
 
 import (
 	"log"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-)
-
-const (
-	roadImage    = "assets/images/road.png"
-	roadPosition = 100
 )
 
 type road struct {

@@ -1,11 +1,7 @@
-package main
+package game
 
 import (
 	"github.com/faiface/pixel/pixelgl"
-)
-
-const (
-	maxCountOfCacti = 3
 )
 
 type enemies struct {

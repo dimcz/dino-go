@@ -1,10 +1,11 @@
-package main
+package game
 
 import (
 	"image"
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"time"
 
 	_ "image/png"
 
@@ -74,4 +75,12 @@ func atlasTable(path string, sizes []float64) (map[float64]*text.Atlas, error) {
 
 func float64n(low, high float64) float64 {
 	return low + rand.Float64()*(high-low)
+}
+
+func setFPS(fps int) *time.Ticker {
+	if fps <= 0 {
+		return nil
+	}
+
+	return time.NewTicker(time.Second / time.Duration(fps))
 }
