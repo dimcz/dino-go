@@ -113,6 +113,7 @@ func (d *dino) draw(target *pixelgl.Window, atlas *text.Atlas, gameSpeed float64
 	txt.Color = colorScheme[d.dinoType.Color]
 	_, _ = txt.WriteString(d.dinoType.Name)
 
+	// TODO: showing dino name
 	vec = pixel.V(
 		d.sprite.Frame().Max.X-d.sprite.Frame().W()/2-txt.Orig.X/2+d.x,
 		d.sprite.Frame().Max.Y+d.y+textPadding)

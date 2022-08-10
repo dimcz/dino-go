@@ -19,7 +19,7 @@ type Game struct {
 	ai bool
 }
 
-func (g *Game) Player() {
+func (g *Game) Single() {
 	d, err := initDino(dinoTypes[0], dinoPadding)
 	if err != nil {
 		log.Fatalf("error loading: %s", err)
@@ -36,7 +36,7 @@ func (g *Game) AI(count int) {
 	for i := 0; i < count; i++ {
 		t := dinoTypes[i]
 
-		d, err := initDino(t, float64n(dinoPadding-10, dinoPadding+30))
+		d, err := initDino(t, float64n(dinoPadding-10, dinoPadding+100))
 		if err != nil {
 			log.Fatalf("error loading: %s", err)
 		}
@@ -49,8 +49,10 @@ func (g *Game) AI(count int) {
 
 func (g *Game) run() {
 	win := initScreen("Dino Game!")
+	defer win.Destroy()
 
 	frameTick := setFPS(60)
+	defer frameTick.Stop()
 
 	at, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
 	if err != nil {
@@ -88,7 +90,7 @@ gameLoop:
 				delete(g.dinosaurs, k)
 
 				if !g.ai {
-					endGame(win, at[bigSize], k)
+					endSingleGame(win, at[bigSize], k)
 
 					break gameLoop
 				}
@@ -146,7 +148,7 @@ func initScreen(title string) *pixelgl.Window {
 	return win
 }
 
-func endGame(target *pixelgl.Window, atlas *text.Atlas, name string) {
+func endSingleGame(target *pixelgl.Window, atlas *text.Atlas, name string) {
 	txt := text.New(pixel.V(0, 0), atlas)
 	txt.Color = colornames.Red
 	_, _ = fmt.Fprintf(txt, "%s DIED", name)
