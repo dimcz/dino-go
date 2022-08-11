@@ -17,6 +17,25 @@ const (
 
 var colorScheme = map[string]color.RGBA{
 	"default": colornames.Black,
+	"aqua":    colornames.Aqua,
+	"black":   colornames.Black,
+	"bloody":  colornames.Red,
+	"cobalt":  colornames.Aquamarine,
+	"gold":    colornames.Gold,
+	"insta":   colornames.Blueviolet,
+	"lime":    colornames.Lime,
+	"magenta": colornames.Magenta,
+	"magma":   colornames.Darkred,
+	"navy":    colornames.Navy,
+	"neon":    colornames.Violet,
+	"orange":  colornames.Orange,
+	"pinky":   colornames.Pink,
+	"purple":  colornames.Purple,
+	"rgb":     colornames.Tomato,
+	"silver":  colornames.Silver,
+	"subaru":  colornames.Teal,
+	"sunny":   colornames.Springgreen,
+	"toxic":   colornames.Sandybrown,
 }
 
 type dino struct {
@@ -103,7 +122,6 @@ func (d *dino) draw(target *pixelgl.Window, gameSpeed float64) {
 	)
 	d.sprite.Draw(target, pixel.IM.Moved(vec))
 
-	// TODO: showing dino name
 	vec = pixel.V(
 		d.sprite.Frame().Max.X-d.sprite.Frame().W()/2-d.info.Orig.X/2+d.x,
 		d.sprite.Frame().Max.Y+d.y+textPadding)

@@ -12,5 +12,5 @@ func main() {
 		log.Fatalf("failed to init: %s", err)
 	}
 
-	g.Single()
+	g.AI(20)
 }

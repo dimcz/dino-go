@@ -47,11 +47,6 @@ func NewGame() (*Game, error) {
 	}, nil
 }
 
-func (g *Game) reset() {
-	g.road.reset()
-	g.enemies.reset()
-}
-
 func (g *Game) Single() {
 	d, err := newDino(g.fonts[smallSize], dinoNames[0], dinoColors[0], dinoPadding)
 	if err != nil {
@@ -79,6 +74,11 @@ func (g *Game) AI(count int) {
 	}
 
 	pixelgl.Run(g.run)
+}
+
+func (g *Game) reset() {
+	g.road.reset()
+	g.enemies.reset()
 }
 
 func (g *Game) run() {
