@@ -46,17 +46,21 @@ type dino struct {
 	x, y  float64
 	power float64
 
-	state int
-	index int
+	state   int
+	index   int
+	fitness int
+
+	isActive bool
 }
 
 func newDino(font *text.Atlas, name, color string, padding float64) (*dino, error) {
 	d := dino{
-		sprites: make([]*pixel.Sprite, 3),
-		x:       padding,
-		y:       runPosition,
-		power:   jumpPower,
-		state:   RUN,
+		sprites:  make([]*pixel.Sprite, 3),
+		x:        padding,
+		y:        runPosition,
+		power:    jumpPower,
+		state:    RUN,
+		isActive: true,
 	}
 
 	d.info = text.New(pixel.ZV, font)
@@ -84,6 +88,14 @@ func newDino(font *text.Atlas, name, color string, padding float64) (*dino, erro
 	d.sprite = d.sprites[0]
 
 	return &d, nil
+}
+
+func (d *dino) reset() {
+	d.state = RUN
+	d.power = jumpPower
+	d.y = runPosition
+	d.fitness = 0
+	d.isActive = true
 }
 
 func (d *dino) update(gameSpeed float64) {
@@ -114,6 +126,10 @@ func (d *dino) jump(gameSpeed float64) {
 }
 
 func (d *dino) draw(target *pixelgl.Window, gameSpeed float64) {
+	if !d.isActive {
+		return
+	}
+
 	d.update(gameSpeed)
 
 	vec := pixel.V(

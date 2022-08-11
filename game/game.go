@@ -13,7 +13,25 @@ import (
 
 type Dinosaurs map[string]*dino
 
+func (d Dinosaurs) exists() bool {
+	for _, d := range d {
+		if d.isActive {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (d Dinosaurs) draw(window *pixelgl.Window, step float64) {
+	for _, d := range d {
+		d.draw(window, step)
+	}
+}
+
 type Game struct {
+	count, populations int
+
 	dinosaurs Dinosaurs
 
 	road    *road
@@ -21,11 +39,9 @@ type Game struct {
 
 	fonts map[float64]*text.Atlas
 	info  *text.Text
-
-	ai bool
 }
 
-func NewGame() (*Game, error) {
+func NewGame(count, populations int) (*Game, error) {
 	fonts, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
 	if err != nil {
 		return nil, err
@@ -39,110 +55,97 @@ func NewGame() (*Game, error) {
 		return nil, err
 	}
 
+	dinosaurs := make(Dinosaurs, count)
+	for i := 0; i < count; i++ {
+		dinosaurs[dinoNames[i]], err = newDino(
+			fonts[smallSize],
+			dinoNames[i],
+			dinoColors[i],
+			float64n(dinoPadding-10, dinoPadding+100),
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &Game{
-		fonts:   fonts,
-		info:    info,
-		road:    r,
-		enemies: initEnemies(),
+		count:       count,
+		populations: populations,
+		fonts:       fonts,
+		info:        info,
+		road:        r,
+		enemies:     initEnemies(),
+		dinosaurs:   dinosaurs,
 	}, nil
 }
 
-func (g *Game) Single() {
-	d, err := newDino(g.fonts[smallSize], dinoNames[0], dinoColors[0], dinoPadding)
-	if err != nil {
-		log.Fatalf("error loading: %s", err)
-	}
+func (g *Game) Start() {
+	win := initScreen("Dino Game!")
 
-	g.dinosaurs = Dinosaurs{"Fluffy": d}
-	pixelgl.Run(g.run)
-}
+	frameTick := setFPS(gameFPS)
 
-func (g *Game) AI(count int) {
-	g.ai = true
+	for i := 0; i < g.populations; i++ {
 
-	g.dinosaurs = make(Dinosaurs, count)
-	for i := 0; i < count; i++ {
-		d, err := newDino(g.fonts[smallSize],
-			dinoNames[i],
-			dinoColors[i],
-			float64n(dinoPadding-10, dinoPadding+100))
-		if err != nil {
-			log.Fatalf("error loading: %s", err)
+		gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
+
+	gameLoop:
+		for !win.Closed() {
+			win.Clear(colornames.White)
+
+			switch {
+			case win.Pressed(pixelgl.KeyQ), win.Pressed(pixelgl.KeyEscape):
+				win.SetClosed(true)
+			case win.Pressed(pixelgl.KeySpace):
+				for _, d := range g.dinosaurs {
+					if d.state != JUMP {
+						d.jump(gameSpeed)
+					}
+				}
+			}
+
+			g.showInfo(win, fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
+
+			for _, d := range g.dinosaurs {
+				if d.isActive && g.enemies.checkCollisions(d) {
+					d.isActive = false
+				}
+			}
+
+			if !g.dinosaurs.exists() {
+				if g.count == 1 {
+					g.endGame(win)
+				}
+
+				break gameLoop
+			}
+
+			score += gameSpeed / 8
+			if score > scoreSpeedUp {
+				scoreSpeedUp += gameSpeed * 50
+				gameSpeed += 1
+			}
+
+			g.dinosaurs.draw(win, gameSpeed)
+			g.road.draw(win, gameSpeed)
+			g.enemies.draw(win, gameSpeed)
+
+			win.Update()
+
+			if frameTick != nil {
+				<-frameTick.C
+			}
 		}
 
-		g.dinosaurs[dinoNames[i]] = d
+		g.reset()
 	}
-
-	pixelgl.Run(g.run)
 }
 
 func (g *Game) reset() {
 	g.road.reset()
 	g.enemies.reset()
-}
 
-func (g *Game) run() {
-	win := initScreen("Dino Game!")
-	defer win.Destroy()
-
-	frameTick := setFPS(gameFPS)
-	defer frameTick.Stop()
-
-	gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
-
-gameLoop:
-	for !win.Closed() {
-		win.Clear(colornames.White)
-
-		switch {
-		case win.Pressed(pixelgl.KeyQ), win.Pressed(pixelgl.KeyEscape):
-			win.SetClosed(true)
-		case win.Pressed(pixelgl.KeySpace):
-			for _, d := range g.dinosaurs {
-				if d.state != JUMP {
-					d.jump(gameSpeed)
-				}
-			}
-		}
-
-		g.showInfo(win, fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
-
-		for k, d := range g.dinosaurs {
-			if g.enemies.checkCollisions(d) {
-				delete(g.dinosaurs, k)
-
-				if !g.ai {
-					g.endGame(win, k)
-
-					break gameLoop
-				}
-			}
-		}
-
-		if len(g.dinosaurs) == 0 {
-			win.SetClosed(true)
-
-			break gameLoop
-		}
-
-		score += gameSpeed / 8
-		if score > scoreSpeedUp {
-			scoreSpeedUp += gameSpeed * 50
-			gameSpeed += 1
-		}
-
-		for _, d := range g.dinosaurs {
-			d.draw(win, gameSpeed)
-		}
-
-		g.road.draw(win, gameSpeed)
-		g.enemies.draw(win, gameSpeed)
-
-		win.Update()
-
-		if frameTick != nil {
-			<-frameTick.C
-		}
+	for _, d := range g.dinosaurs {
+		d.reset()
 	}
 }
 
@@ -153,18 +156,19 @@ func (g *Game) showInfo(window *pixelgl.Window, txt string) {
 	g.info.Draw(window, pixel.IM.Moved(vec))
 }
 
-func (g *Game) endGame(window *pixelgl.Window, name string) {
+func (g *Game) endGame(window *pixelgl.Window) {
 	window.UpdateInput()
 
 	txt := text.New(pixel.V(0, 0), g.fonts[bigSize])
 	txt.Color = colornames.Red
-	_, _ = fmt.Fprintf(txt, "%s DIED", name)
+	_, _ = txt.WriteString("You DIED")
 
 	vec := window.Bounds().Center().Sub(pixel.V(txt.Bounds().W()/2, txt.LineHeight/2))
 	txt.Draw(window, pixel.IM.Moved(vec))
 
 	window.Update()
 	window.UpdateInputWait(0)
+
 	window.SetClosed(true)
 }
 
