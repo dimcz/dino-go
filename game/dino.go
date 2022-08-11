@@ -46,9 +46,8 @@ type dino struct {
 	x, y  float64
 	power float64
 
-	state   int
-	index   int
-	fitness int
+	state int
+	index int
 
 	isActive bool
 }
@@ -94,7 +93,6 @@ func (d *dino) reset() {
 	d.state = RUN
 	d.power = jumpPower
 	d.y = runPosition
-	d.fitness = 0
 	d.isActive = true
 }
 
