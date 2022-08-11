@@ -30,7 +30,7 @@ func (d Dinosaurs) draw(window *pixelgl.Window, step float64) {
 }
 
 type Game struct {
-	count, epochCount int
+	count int
 
 	dinosaurs Dinosaurs
 
@@ -41,7 +41,7 @@ type Game struct {
 	info  *text.Text
 }
 
-func NewGame(count, epoch int) (*Game, error) {
+func NewGame(count int) (*Game, error) {
 	fonts, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
 	if err != nil {
 		return nil, err
@@ -69,13 +69,12 @@ func NewGame(count, epoch int) (*Game, error) {
 	}
 
 	return &Game{
-		count:      count,
-		epochCount: epoch,
-		fonts:      fonts,
-		info:       info,
-		road:       r,
-		enemies:    initEnemies(),
-		dinosaurs:  dinosaurs,
+		count:     count,
+		fonts:     fonts,
+		info:      info,
+		road:      r,
+		enemies:   initEnemies(),
+		dinosaurs: dinosaurs,
 	}, nil
 }
 
@@ -84,61 +83,58 @@ func (g *Game) Start() {
 
 	frameTick := setFPS(gameFPS)
 
-	for i := 0; i < g.epochCount; i++ {
+	gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
 
-		gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
+gameLoop:
+	for !win.Closed() {
+		win.Clear(colornames.White)
 
-	gameLoop:
-		for !win.Closed() {
-			win.Clear(colornames.White)
-
-			switch {
-			case win.Pressed(pixelgl.KeyQ), win.Pressed(pixelgl.KeyEscape):
-				win.SetClosed(true)
-			case win.Pressed(pixelgl.KeySpace):
-				for _, d := range g.dinosaurs {
-					if d.state != JUMP {
-						d.jump(gameSpeed)
-					}
-				}
-			}
-
-			g.showInfo(win, fmt.Sprintf("Scores: %0.f\nSpeed: %0.f\nPopulation: %d",
-				math.Floor(score), gameSpeed, i+1))
-
+		switch {
+		case win.Pressed(pixelgl.KeyQ), win.Pressed(pixelgl.KeyEscape):
+			win.SetClosed(true)
+		case win.Pressed(pixelgl.KeySpace):
 			for _, d := range g.dinosaurs {
-				if d.isActive && g.enemies.checkCollisions(d) {
-					d.isActive = false
+				if d.state != JUMP {
+					d.jump(gameSpeed)
 				}
-			}
-
-			if g.dinosaurs.notExists() {
-				if g.count == 1 || i == g.epochCount-1 {
-					g.endGame(win)
-				}
-
-				break gameLoop
-			}
-
-			score += gameSpeed / 8
-			if score > scoreSpeedUp {
-				scoreSpeedUp += gameSpeed * 50
-				gameSpeed += 1
-			}
-
-			g.dinosaurs.draw(win, gameSpeed)
-			g.road.draw(win, gameSpeed)
-			g.enemies.draw(win, gameSpeed)
-
-			win.Update()
-
-			if frameTick != nil {
-				<-frameTick.C
 			}
 		}
 
-		g.reset()
+		g.showInfo(win, fmt.Sprintf("Scores: %0.f\nSpeed: %0.f",
+			math.Floor(score), gameSpeed))
+
+		for _, d := range g.dinosaurs {
+			if d.isActive && g.enemies.checkCollisions(d) {
+				d.isActive = false
+			}
+		}
+
+		if g.dinosaurs.notExists() {
+			if g.count == 1 {
+				g.endGame(win)
+			}
+
+			break gameLoop
+		}
+
+		score += gameSpeed / 8
+		if score > scoreSpeedUp {
+			scoreSpeedUp += gameSpeed * 50
+			gameSpeed += 1
+		}
+
+		g.dinosaurs.draw(win, gameSpeed)
+		g.road.draw(win, gameSpeed)
+		g.enemies.draw(win, gameSpeed)
+
+		win.Update()
+
+		if frameTick != nil {
+			<-frameTick.C
+		}
 	}
+
+	g.reset()
 }
 
 func (g *Game) reset() {
