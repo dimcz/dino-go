@@ -20,43 +20,43 @@ var colorScheme = map[string]color.RGBA{
 }
 
 type dino struct {
-	sprites  []*pixel.Sprite
-	sprite   *pixel.Sprite
-	dinoType Types
+	sprites []*pixel.Sprite
+	sprite  *pixel.Sprite
+	info    *text.Text
 
 	x, y  float64
 	power float64
 
 	state int
 	index int
-
-	isActive bool
 }
 
-func initDino(dinoType Types, padding float64) (*dino, error) {
+func newDino(font *text.Atlas, name, color string, padding float64) (*dino, error) {
 	d := dino{
-		sprites:  make([]*pixel.Sprite, 3),
-		dinoType: dinoType,
-		x:        padding,
-		y:        runPosition,
-		power:    jumpPower,
-		state:    RUN,
-		isActive: true,
+		sprites: make([]*pixel.Sprite, 3),
+		x:       padding,
+		y:       runPosition,
+		power:   jumpPower,
+		state:   RUN,
 	}
 
-	pic, err := loadPicture(fmt.Sprintf("assets/images/dino/%s_run1.png", dinoType.Color))
+	d.info = text.New(pixel.ZV, font)
+	d.info.Color = colorScheme[color]
+	_, _ = d.info.WriteString(name)
+
+	pic, err := loadPicture(fmt.Sprintf("assets/images/dino/%s_run1.png", color))
 	if err != nil {
 		return nil, err
 	}
 	d.sprites[0] = pixel.NewSprite(pic, pic.Bounds())
 
-	pic, err = loadPicture(fmt.Sprintf("assets/images/dino/%s_run2.png", dinoType.Color))
+	pic, err = loadPicture(fmt.Sprintf("assets/images/dino/%s_run2.png", color))
 	if err != nil {
 		return nil, err
 	}
 	d.sprites[1] = pixel.NewSprite(pic, pic.Bounds())
 
-	pic, err = loadPicture(fmt.Sprintf("assets/images/dino/%s_jump.png", dinoType.Color))
+	pic, err = loadPicture(fmt.Sprintf("assets/images/dino/%s_jump.png", color))
 	if err != nil {
 		return nil, err
 	}
@@ -65,12 +65,6 @@ func initDino(dinoType Types, padding float64) (*dino, error) {
 	d.sprite = d.sprites[0]
 
 	return &d, nil
-}
-
-func (d *dino) reset() {
-	d.y = runPosition
-	d.power = jumpPower
-	d.state = RUN
 }
 
 func (d *dino) update(gameSpeed float64) {
@@ -100,7 +94,7 @@ func (d *dino) jump(gameSpeed float64) {
 	}
 }
 
-func (d *dino) draw(target *pixelgl.Window, atlas *text.Atlas, gameSpeed float64) {
+func (d *dino) draw(target *pixelgl.Window, gameSpeed float64) {
 	d.update(gameSpeed)
 
 	vec := pixel.V(
@@ -109,16 +103,12 @@ func (d *dino) draw(target *pixelgl.Window, atlas *text.Atlas, gameSpeed float64
 	)
 	d.sprite.Draw(target, pixel.IM.Moved(vec))
 
-	txt := text.New(pixel.ZV, atlas)
-	txt.Color = colorScheme[d.dinoType.Color]
-	_, _ = txt.WriteString(d.dinoType.Name)
-
 	// TODO: showing dino name
 	vec = pixel.V(
-		d.sprite.Frame().Max.X-d.sprite.Frame().W()/2-txt.Orig.X/2+d.x,
+		d.sprite.Frame().Max.X-d.sprite.Frame().W()/2-d.info.Orig.X/2+d.x,
 		d.sprite.Frame().Max.Y+d.y+textPadding)
 
-	txt.Draw(target, pixel.IM.Moved(vec))
+	d.info.Draw(target, pixel.IM.Moved(vec))
 }
 
 func (d *dino) actual() pixel.Rect {

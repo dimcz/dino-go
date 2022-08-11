@@ -16,11 +16,44 @@ type Dinosaurs map[string]*dino
 type Game struct {
 	dinosaurs Dinosaurs
 
+	road    *road
+	enemies *enemies
+
+	fonts map[float64]*text.Atlas
+	info  *text.Text
+
 	ai bool
 }
 
+func NewGame() (*Game, error) {
+	fonts, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
+	if err != nil {
+		return nil, err
+	}
+
+	info := text.New(pixel.V(0, 0), fonts[normalSize])
+	info.Color = colornames.Black
+
+	r, err := initRoad()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Game{
+		fonts:   fonts,
+		info:    info,
+		road:    r,
+		enemies: initEnemies(),
+	}, nil
+}
+
+func (g *Game) reset() {
+	g.road.reset()
+	g.enemies.reset()
+}
+
 func (g *Game) Single() {
-	d, err := initDino(dinoTypes[0], dinoPadding)
+	d, err := newDino(g.fonts[smallSize], dinoNames[0], dinoColors[0], dinoPadding)
 	if err != nil {
 		log.Fatalf("error loading: %s", err)
 	}
@@ -34,14 +67,15 @@ func (g *Game) AI(count int) {
 
 	g.dinosaurs = make(Dinosaurs, count)
 	for i := 0; i < count; i++ {
-		t := dinoTypes[i]
-
-		d, err := initDino(t, float64n(dinoPadding-10, dinoPadding+100))
+		d, err := newDino(g.fonts[smallSize],
+			dinoNames[i],
+			dinoColors[i],
+			float64n(dinoPadding-10, dinoPadding+100))
 		if err != nil {
 			log.Fatalf("error loading: %s", err)
 		}
 
-		g.dinosaurs[t.Name] = d
+		g.dinosaurs[dinoNames[i]] = d
 	}
 
 	pixelgl.Run(g.run)
@@ -51,19 +85,8 @@ func (g *Game) run() {
 	win := initScreen("Dino Game!")
 	defer win.Destroy()
 
-	frameTick := setFPS(60)
+	frameTick := setFPS(gameFPS)
 	defer frameTick.Stop()
-
-	at, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
-	if err != nil {
-		log.Fatalf("error loading: %s", err)
-	}
-
-	infoText := text.New(pixel.V(0, 0), at[normalSize])
-	infoText.Color = colornames.Black
-
-	r := initRoad()
-	e := initEnemies()
 
 	gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
 
@@ -82,15 +105,14 @@ gameLoop:
 			}
 		}
 
-		printInfo(win, infoText, 10, Height-10,
-			fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
+		g.showInfo(win, fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
 
 		for k, d := range g.dinosaurs {
-			if e.checkCollisions(d) {
+			if g.enemies.checkCollisions(d) {
 				delete(g.dinosaurs, k)
 
 				if !g.ai {
-					endSingleGame(win, at[bigSize], k)
+					g.endGame(win, k)
 
 					break gameLoop
 				}
@@ -110,13 +132,11 @@ gameLoop:
 		}
 
 		for _, d := range g.dinosaurs {
-			if d.isActive {
-				d.draw(win, at[smallSize], gameSpeed)
-			}
+			d.draw(win, gameSpeed)
 		}
 
-		r.draw(win, gameSpeed)
-		e.draw(win, gameSpeed)
+		g.road.draw(win, gameSpeed)
+		g.enemies.draw(win, gameSpeed)
 
 		win.Update()
 
@@ -126,11 +146,26 @@ gameLoop:
 	}
 }
 
-func printInfo(win *pixelgl.Window, txt *text.Text, x, y float64, s string) {
-	txt.Clear()
-	_, _ = txt.WriteString(s)
-	vec := pixel.V(x, y-txt.LineHeight)
-	txt.Draw(win, pixel.IM.Moved(vec))
+func (g *Game) showInfo(window *pixelgl.Window, txt string) {
+	g.info.Clear()
+	_, _ = g.info.WriteString(txt)
+	vec := pixel.V(infoPadding, Height-g.info.LineHeight-infoPadding)
+	g.info.Draw(window, pixel.IM.Moved(vec))
+}
+
+func (g *Game) endGame(window *pixelgl.Window, name string) {
+	window.UpdateInput()
+
+	txt := text.New(pixel.V(0, 0), g.fonts[bigSize])
+	txt.Color = colornames.Red
+	_, _ = fmt.Fprintf(txt, "%s DIED", name)
+
+	vec := window.Bounds().Center().Sub(pixel.V(txt.Bounds().W()/2, txt.LineHeight/2))
+	txt.Draw(window, pixel.IM.Moved(vec))
+
+	window.Update()
+	window.UpdateInputWait(0)
+	window.SetClosed(true)
 }
 
 func initScreen(title string) *pixelgl.Window {
@@ -146,17 +181,4 @@ func initScreen(title string) *pixelgl.Window {
 	}
 
 	return win
-}
-
-func endSingleGame(target *pixelgl.Window, atlas *text.Atlas, name string) {
-	txt := text.New(pixel.V(0, 0), atlas)
-	txt.Color = colornames.Red
-	_, _ = fmt.Fprintf(txt, "%s DIED", name)
-
-	vec := target.Bounds().Center().Sub(pixel.V(txt.Bounds().W()/2, txt.LineHeight/2))
-	txt.Draw(target, pixel.IM.Moved(vec))
-
-	target.Update()
-	target.UpdateInputWait(0)
-	target.SetClosed(true)
 }

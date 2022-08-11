@@ -1,8 +1,16 @@
 package main
 
-import "github.com/dimcz/dino-go/game"
+import (
+	"log"
+
+	"github.com/dimcz/dino-go/game"
+)
 
 func main() {
-	g := game.Game{}
-	g.AI(20)
+	g, err := game.NewGame()
+	if err != nil {
+		log.Fatalf("failed to init: %s", err)
+	}
+
+	g.Single()
 }

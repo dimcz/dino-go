@@ -1,8 +1,6 @@
 package game
 
 import (
-	"log"
-
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 )
@@ -13,17 +11,17 @@ type road struct {
 	pos         float64
 }
 
-func initRoad() *road {
+func initRoad() (*road, error) {
 	pic, err := loadPicture(roadImage)
 	if err != nil {
-		log.Fatalf("error loading: %s", err)
+		return nil, err
 	}
 
 	return &road{
 		pic:   pic,
 		left:  pixel.NewSprite(nil, pixel.ZR),
 		right: pixel.NewSprite(nil, pixel.ZR),
-	}
+	}, nil
 }
 
 func (r *road) reset() {
