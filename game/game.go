@@ -13,14 +13,14 @@ import (
 
 type Dinosaurs map[string]*dino
 
-func (d Dinosaurs) exists() bool {
+func (d Dinosaurs) notExists() bool {
 	for _, d := range d {
 		if d.isActive {
-			return true
+			return false
 		}
 	}
 
-	return false
+	return true
 }
 
 func (d Dinosaurs) draw(window *pixelgl.Window, step float64) {
@@ -111,7 +111,7 @@ func (g *Game) Start() {
 				}
 			}
 
-			if !g.dinosaurs.exists() {
+			if g.dinosaurs.notExists() {
 				if g.count == 1 {
 					g.endGame(win)
 				}
