@@ -30,7 +30,7 @@ func (d Dinosaurs) draw(window *pixelgl.Window, step float64) {
 }
 
 type Game struct {
-	count, populations int
+	count, epochCount int
 
 	dinosaurs Dinosaurs
 
@@ -41,7 +41,7 @@ type Game struct {
 	info  *text.Text
 }
 
-func NewGame(count, populations int) (*Game, error) {
+func NewGame(count, epoch int) (*Game, error) {
 	fonts, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
 	if err != nil {
 		return nil, err
@@ -69,13 +69,13 @@ func NewGame(count, populations int) (*Game, error) {
 	}
 
 	return &Game{
-		count:       count,
-		populations: populations,
-		fonts:       fonts,
-		info:        info,
-		road:        r,
-		enemies:     initEnemies(),
-		dinosaurs:   dinosaurs,
+		count:      count,
+		epochCount: epoch,
+		fonts:      fonts,
+		info:       info,
+		road:       r,
+		enemies:    initEnemies(),
+		dinosaurs:  dinosaurs,
 	}, nil
 }
 
@@ -84,7 +84,7 @@ func (g *Game) Start() {
 
 	frameTick := setFPS(gameFPS)
 
-	for i := 0; i < g.populations; i++ {
+	for i := 0; i < g.epochCount; i++ {
 
 		gameSpeed, score, scoreSpeedUp := 4.0, 0.0, 100.0
 
@@ -103,7 +103,8 @@ func (g *Game) Start() {
 				}
 			}
 
-			g.showInfo(win, fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed))
+			g.showInfo(win, fmt.Sprintf("Scores: %0.f\nSpeed: %0.f\nPopulation: %d",
+				math.Floor(score), gameSpeed, i+1))
 
 			for _, d := range g.dinosaurs {
 				if d.isActive && g.enemies.checkCollisions(d) {
@@ -112,7 +113,7 @@ func (g *Game) Start() {
 			}
 
 			if g.dinosaurs.notExists() {
-				if g.count == 1 {
+				if g.count == 1 || i == g.epochCount-1 {
 					g.endGame(win)
 				}
 
@@ -161,7 +162,7 @@ func (g *Game) endGame(window *pixelgl.Window) {
 
 	txt := text.New(pixel.V(0, 0), g.fonts[bigSize])
 	txt.Color = colornames.Red
-	_, _ = txt.WriteString("You DIED")
+	_, _ = txt.WriteString("GAME OVER")
 
 	vec := window.Bounds().Center().Sub(pixel.V(txt.Bounds().W()/2, txt.LineHeight/2))
 	txt.Draw(window, pixel.IM.Moved(vec))

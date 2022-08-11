@@ -9,14 +9,14 @@ import (
 )
 
 func main() {
-	d := 1
-	p := 10
+	dinosaurs := 1
+	epoch := 10
 
-	flag.IntVar(&d, "d", 10, "dinosaurs count")
-	flag.IntVar(&p, "p", 10, "populations count")
+	flag.IntVar(&dinosaurs, "d", 20, "dinosaurs count")
+	flag.IntVar(&epoch, "e", 10, "populations count")
 	flag.Parse()
 
-	g, err := game.NewGame(d, p)
+	g, err := game.NewGame(dinosaurs, epoch)
 	if err != nil {
 		log.Fatalf("failed to init: %s", err)
 	}
