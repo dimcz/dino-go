@@ -1,0 +1,20 @@
+pop_size: 20
+num_generations: 100
+epoch_executor: sequential
+genome_compat_method: fast
+
+trait_param_mut_prob: 0.5
+trait_mutation_power: 0.7
+weight_mut_power: 0.1
+
+node_activators:
+  - TanhActivation 0.01
+
+disjoint_coeff: 1.0
+mutdiff_coeff: 0.5
+
+compat_threshold: 3.0
+
+survival_thresh: 0.2
+
+log_level: debug

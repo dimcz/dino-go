@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-	dinosaurs := 1
-	g, err := game.NewGame(dinosaurs)
+	g, err := game.NewGame(1)
 	if err != nil {
 		log.Fatalf("failed to init: %s", err)
 	}
