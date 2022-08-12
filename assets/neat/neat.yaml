@@ -3,8 +3,10 @@ num_runs: 100
 num_generations: 100
 epoch_executor: sequential
 genome_compat_method: fast
+log_level: debug
 
-log_level: info
+node_activators:
+  - TanhActivation 0.05
 
 trait_param_mut_prob: 0.5
 trait_mutation_power: 1.0

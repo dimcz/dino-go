@@ -10,7 +10,7 @@ import (
 )
 
 const NEAT_CONFIG = "assets/neat/neat.yaml"
-const NEAT_GENOME = "assets/neat/genome.yaml"
+const NEAT_GENOME = "assets/neat/genome.config"
 
 func main() {
 	fOpts, err := os.Open(NEAT_CONFIG)

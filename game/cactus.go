@@ -3,7 +3,6 @@ package game
 import (
 	"fmt"
 	"log"
-	"math/rand"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -27,7 +26,7 @@ type cactus struct {
 }
 
 func initCactus(x float64) *cactus {
-	pic := pics[rand.Intn(6)]
+	pic := pics[0] // rand.Intn(6)]
 	sprite := pixel.NewSprite(pic, pic.Bounds())
 
 	return &cactus{

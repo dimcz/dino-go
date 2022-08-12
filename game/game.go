@@ -17,9 +17,6 @@ import (
 type Dinosaurs map[string]*dino
 
 type Game struct {
-	count int
-	age   int
-
 	dinosaurs Dinosaurs
 
 	road    *road
@@ -28,7 +25,7 @@ type Game struct {
 	fonts map[float64]*text.Atlas
 	info  *text.Text
 
-	neat bool
+	eID int
 }
 
 func NewGame() (*Game, error) {
@@ -53,7 +50,7 @@ func NewGame() (*Game, error) {
 	return game, nil
 }
 
-func NewNEATGame(org []*genetics.Organism, age int) (*Game, error) {
+func NewNEATGame(org []*genetics.Organism, eID int) (*Game, error) {
 	game, err := newGame()
 	if err != nil {
 		return nil, err
@@ -74,8 +71,7 @@ func NewNEATGame(org []*genetics.Organism, age int) (*Game, error) {
 	}
 
 	game.dinosaurs = dinosaurs
-	game.neat = true
-	game.age = age
+	game.eID = eID
 
 	return game, nil
 }
@@ -106,31 +102,30 @@ gameLoop:
 			}
 		}
 
-		g.showInfo(win, fmt.Sprintf("Scores: %0.f\nSpeed: %0.f\nGeneration: %d\n",
-			math.Floor(score), gameSpeed, g.age+1))
+		s := fmt.Sprintf("Scores: %0.f\nSpeed: %0.f", math.Floor(score), gameSpeed)
+		if g.eID > -1 {
+			s = fmt.Sprintf("%s\nGeneration: %d", s, g.eID)
+		}
+		g.showInfo(win, s)
 
 		for k, d := range g.dinosaurs {
-			if g.neat {
+			if g.eID > -1 {
 				// control
-				if getControl(d.org.Phenotype, d, g.enemies.cacti, gameSpeed) > 0.2 {
+				if getControl(d.org.Phenotype, d, g.enemies.cacti, gameSpeed) > 0.5 {
 					d.jump(gameSpeed)
-					d.org.Fitness -= 0.5
+					d.org.Fitness -= 1
 				}
 			}
 
 			// collisions
 			if g.enemies.checkCollisions(d) {
-
-				if len(g.dinosaurs) > 1 {
-					d.org.Fitness -= 1000
-				}
-
 				delete(g.dinosaurs, k)
+				d.org.Fitness = -10
 			}
 		}
 
 		if len(g.dinosaurs) == 0 {
-			if !g.neat {
+			if g.eID < 0 {
 				g.endGame(win)
 			}
 
@@ -144,13 +139,13 @@ gameLoop:
 		}
 
 		g.road.draw(win, gameSpeed)
-		removed := g.enemies.draw(win, gameSpeed)
+		g.enemies.draw(win, gameSpeed)
 
 		for _, d := range g.dinosaurs {
 			d.draw(win, gameSpeed)
 
-			if g.neat && removed {
-				d.org.Fitness += 1000
+			if g.eID > -1 {
+				d.org.Fitness += .5
 			}
 		}
 
@@ -181,6 +176,7 @@ func newGame() (*Game, error) {
 		info:    info,
 		road:    r,
 		enemies: initEnemies(),
+		eID:     -1,
 	}, nil
 }
 
@@ -222,6 +218,18 @@ func initScreen(title string) *pixelgl.Window {
 	return win
 }
 
+func getInputs(d *dino, c *cactus, speed float64) []float64 {
+	dinoRect := d.actual()
+	cactusRect := c.actual()
+
+	dx := dinoRect.Max.X - cactusRect.Min.X + cactusRect.W()/2
+	dy := dinoRect.Max.Y - cactusRect.Min.Y
+
+	dist := math.Sqrt(dx*dx + dy*dy)
+
+	return []float64{0.1, dinoRect.Max.Y, dist, cactusRect.W(), speed}
+}
+
 func getControl(net *network.Network, d *dino, cacti []*cactus, speed float64) float64 {
 	c := cacti[0]
 	for _, v := range cacti {
@@ -231,7 +239,7 @@ func getControl(net *network.Network, d *dino, cacti []*cactus, speed float64) f
 		}
 	}
 
-	inputs := []float64{d.actual().Min.Y, getDistance(d.actual(), c.actual()), c.sprite.Frame().W(), speed}
+	inputs := getInputs(d, c, speed)
 	if err := net.LoadSensors(inputs); err != nil {
 		log.Fatal(err)
 	}
@@ -241,11 +249,4 @@ func getControl(net *network.Network, d *dino, cacti []*cactus, speed float64) f
 	}
 
 	return net.ReadOutputs()[0]
-}
-
-func getDistance(r1 pixel.Rect, r2 pixel.Rect) float64 {
-	dx := r1.Max.X - r2.Min.X
-	dy := r2.Max.Y - r2.Min.Y
-
-	return math.Sqrt(dx*dx + dy*dy)
 }

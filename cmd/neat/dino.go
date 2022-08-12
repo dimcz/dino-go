@@ -30,12 +30,7 @@ func (d *DinoEvaluator) GenerationEvaluate(ctx context.Context, pop *genetics.Po
 	g.Run()
 
 	for _, org := range pop.Organisms {
-		if org.Fitness <= 0 {
-			continue
-		}
-
 		if epoch.Champion == nil || org.Fitness > epoch.Champion.Fitness {
-			epoch.Solved = true
 			epoch.WinnerNodes = len(org.Genotype.Nodes)
 			epoch.WinnerGenes = org.Genotype.Extrons()
 			epoch.WinnerEvals = options.PopSize*epoch.Id + org.Genotype.Id
