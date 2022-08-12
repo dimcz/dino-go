@@ -1,5 +1,5 @@
 pop_size: 20
-num_runs: 100
+num_runs: 1
 num_generations: 100
 epoch_executor: sequential
 genome_compat_method: fast
