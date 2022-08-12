@@ -28,16 +28,19 @@ func initEnemies() *enemies {
 	return &enemies{cacti}
 }
 
-func (e *enemies) draw(target *pixelgl.Window, step float64) {
+func (e *enemies) draw(target *pixelgl.Window, step float64) (removed bool) {
 	if e.cacti[0].x+e.cacti[0].sprite.Frame().W() <= 0 {
 		e.cacti = e.cacti[1:]
 		e.cacti = append(e.cacti, initCactus(distance(e.cacti[1].x)))
+		removed = true
 	}
 
 	for _, v := range e.cacti {
 		v.draw(target)
 		v.x -= step
 	}
+
+	return removed
 }
 
 func (e *enemies) checkCollisions(d *dino) bool {
