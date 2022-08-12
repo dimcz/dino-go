@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/rand"
+	"time"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -161,6 +163,8 @@ gameLoop:
 }
 
 func newGame() (*Game, error) {
+	rand.Seed(time.Now().UnixNano())
+
 	fonts, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
 	if err != nil {
 		return nil, err
