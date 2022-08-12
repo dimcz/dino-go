@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -11,8 +12,17 @@ import (
 
 const NEAT_CONFIG = "assets/neat/neat.yaml"
 const NEAT_GENOME = "assets/neat/genome.config"
+const GENOME_DUMP = "assets/neat/last.config"
 
 func main() {
+	var genomePath string
+	flag.StringVar(&genomePath, "genome", "", "genome file")
+	flag.Parse()
+
+	if len(genomePath) == 0 {
+		genomePath = NEAT_GENOME
+	}
+
 	fOpts, err := os.Open(NEAT_CONFIG)
 	if err != nil {
 		log.Fatal(err)
@@ -36,7 +46,7 @@ func main() {
 		_ = fGenome.Close()
 	}(fGenome)
 
-	reader, err := genetics.NewGenomeReaderFromFile(NEAT_GENOME)
+	reader, err := genetics.NewGenomeReaderFromFile(genomePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,7 +61,7 @@ func main() {
 		Trials: make(experiment.Trials, opts.NumRuns),
 	}
 
-	err = exp.Execute(opts.NeatContext(), genome, NewDinoEvaluator(), nil)
+	err = exp.Execute(opts.NeatContext(), genome, NewDinoEvaluator(GENOME_DUMP), nil)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/dimcz/dino-go/game"
 	"github.com/yaricom/goNEAT/v3/experiment"
@@ -11,10 +13,11 @@ import (
 )
 
 type DinoEvaluator struct {
+	path string
 }
 
-func NewDinoEvaluator() *DinoEvaluator {
-	return &DinoEvaluator{}
+func NewDinoEvaluator(path string) *DinoEvaluator {
+	return &DinoEvaluator{path}
 }
 
 func (d *DinoEvaluator) GenerationEvaluate(ctx context.Context, pop *genetics.Population, epoch *experiment.Generation) error {
@@ -36,6 +39,15 @@ func (d *DinoEvaluator) GenerationEvaluate(ctx context.Context, pop *genetics.Po
 			epoch.WinnerEvals = options.PopSize*epoch.Id + org.Genotype.Id
 			epoch.Champion = org
 		}
+	}
+
+	if g.Stop && len(d.path) > 0 {
+		if file, err := os.Create(d.path); err != nil {
+			neat.ErrorLog(fmt.Sprintf("Failed to create file, reason: %s\n", err))
+		} else if err = epoch.Champion.Genotype.Write(file); err != nil {
+			neat.ErrorLog(fmt.Sprintf("Failed to dump champion genome, reason: %s\n", err))
+		}
+		epoch.Solved = true
 	}
 
 	epoch.FillPopulationStatistics(pop)

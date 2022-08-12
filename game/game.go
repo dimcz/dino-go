@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"os"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -25,7 +24,8 @@ type Game struct {
 	fonts map[float64]*text.Atlas
 	info  *text.Text
 
-	eID int
+	eID  int
+	Stop bool
 }
 
 func NewGame() (*Game, error) {
@@ -93,7 +93,10 @@ gameLoop:
 
 		switch {
 		case win.Pressed(pixelgl.KeyQ), win.Pressed(pixelgl.KeyEscape):
-			os.Exit(0)
+			g.Stop = true
+			win.SetClosed(true)
+
+			break
 		case win.Pressed(pixelgl.KeySpace):
 			for _, d := range g.dinosaurs {
 				if d.state != JUMP {
