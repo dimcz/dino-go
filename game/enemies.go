@@ -28,17 +28,6 @@ func initEnemies() *enemies {
 	return &enemies{cacti}
 }
 
-func (e *enemies) reset() {
-	cacti := make([]*cactus, maxCountOfCacti)
-	x := Width
-	for i := 0; i < maxCountOfCacti; i++ {
-		x = distance(x)
-		cacti[i] = initCactus(x)
-	}
-
-	e.cacti = cacti
-}
-
 func (e *enemies) draw(target *pixelgl.Window, step float64) {
 	if e.cacti[0].x+e.cacti[0].sprite.Frame().W() <= 0 {
 		e.cacti = e.cacti[1:]

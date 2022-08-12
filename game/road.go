@@ -24,10 +24,6 @@ func initRoad() (*road, error) {
 	}, nil
 }
 
-func (r *road) reset() {
-	r.pos = 0
-}
-
 func (r *road) draw(target *pixelgl.Window, step float64) {
 	if r.pos+Width > r.pic.Bounds().Max.X {
 		x := r.pos + Width - r.pic.Bounds().Max.X

@@ -7,6 +7,7 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/faiface/pixel/text"
+	"github.com/yaricom/goNEAT/v3/neat/genetics"
 	"golang.org/x/image/colornames"
 )
 
@@ -42,24 +43,23 @@ type dino struct {
 	sprites []*pixel.Sprite
 	sprite  *pixel.Sprite
 	info    *text.Text
+	org     *genetics.Organism
 
 	x, y  float64
 	power float64
 
 	state int
 	index int
-
-	isActive bool
 }
 
-func newDino(font *text.Atlas, name, color string, padding float64) (*dino, error) {
+func newDino(font *text.Atlas, name, color string, padding float64, org *genetics.Organism) (*dino, error) {
 	d := dino{
-		sprites:  make([]*pixel.Sprite, 3),
-		x:        padding,
-		y:        runPosition,
-		power:    jumpPower,
-		state:    RUN,
-		isActive: true,
+		sprites: make([]*pixel.Sprite, 3),
+		x:       padding,
+		y:       runPosition,
+		power:   jumpPower,
+		state:   RUN,
+		org:     org,
 	}
 
 	d.info = text.New(pixel.ZV, font)
@@ -87,13 +87,6 @@ func newDino(font *text.Atlas, name, color string, padding float64) (*dino, erro
 	d.sprite = d.sprites[0]
 
 	return &d, nil
-}
-
-func (d *dino) reset() {
-	d.state = RUN
-	d.power = jumpPower
-	d.y = runPosition
-	d.isActive = true
 }
 
 func (d *dino) update(gameSpeed float64) {
@@ -124,10 +117,6 @@ func (d *dino) jump(gameSpeed float64) {
 }
 
 func (d *dino) draw(target *pixelgl.Window, gameSpeed float64) {
-	if !d.isActive {
-		return
-	}
-
 	d.update(gameSpeed)
 
 	vec := pixel.V(

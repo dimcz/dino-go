@@ -15,6 +15,7 @@ const (
 	jumpPower      = 10.0
 
 	maxCountOfCacti = 3
+	cactusPosition  = 110
 
 	roadImage    = "assets/images/road.png"
 	roadPosition = 100

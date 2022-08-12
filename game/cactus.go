@@ -9,10 +9,6 @@ import (
 	"github.com/faiface/pixel/pixelgl"
 )
 
-const (
-	cactusPosition = 85
-)
-
 var pics [6]pixel.Picture
 
 func init() {

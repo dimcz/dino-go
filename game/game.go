@@ -8,26 +8,11 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/faiface/pixel/text"
+	"github.com/yaricom/goNEAT/v3/neat/genetics"
 	"golang.org/x/image/colornames"
 )
 
 type Dinosaurs map[string]*dino
-
-func (d Dinosaurs) notExists() bool {
-	for _, d := range d {
-		if d.isActive {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (d Dinosaurs) draw(window *pixelgl.Window, step float64) {
-	for _, d := range d {
-		d.draw(window, step)
-	}
-}
 
 type Game struct {
 	count int
@@ -39,46 +24,63 @@ type Game struct {
 
 	fonts map[float64]*text.Atlas
 	info  *text.Text
+
+	neat bool
 }
 
-func NewGame(count int) (*Game, error) {
-	fonts, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
+func NewGame() (*Game, error) {
+	game, err := newGame()
 	if err != nil {
 		return nil, err
 	}
 
-	info := text.New(pixel.V(0, 0), fonts[normalSize])
-	info.Color = colornames.Black
-
-	r, err := initRoad()
+	d, err := newDino(
+		game.fonts[smallSize],
+		dinoNames[0],
+		dinoColors[0],
+		float64n(dinoPadding-10, dinoPadding+100),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	dinosaurs := make(Dinosaurs, count)
-	for i := 0; i < count; i++ {
+	game.dinosaurs = Dinosaurs{dinoNames[0]: d}
+
+	return game, nil
+}
+
+func NewNEATGame(org []*genetics.Organism) (*Game, error) {
+	game, err := newGame()
+	if err != nil {
+		return nil, err
+	}
+
+	dinosaurs := make(Dinosaurs, len(org))
+	for i, o := range org {
 		dinosaurs[dinoNames[i]], err = newDino(
-			fonts[smallSize],
+			game.fonts[smallSize],
 			dinoNames[i],
 			dinoColors[i],
 			float64n(dinoPadding-10, dinoPadding+100),
+			o,
 		)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return &Game{
-		count:     count,
-		fonts:     fonts,
-		info:      info,
-		road:      r,
-		enemies:   initEnemies(),
-		dinosaurs: dinosaurs,
-	}, nil
+	game.dinosaurs = dinosaurs
+	game.neat = true
+
+	return game, nil
 }
 
-func (g *Game) Start() {
+func (g *Game) Run() {
+	pixelgl.Run(g.start)
+}
+
+func (g *Game) start() {
 	win := initScreen("Dino Game!")
 
 	frameTick := setFPS(gameFPS)
@@ -103,14 +105,18 @@ gameLoop:
 		g.showInfo(win, fmt.Sprintf("Scores: %0.f\nSpeed: %0.f",
 			math.Floor(score), gameSpeed))
 
-		for _, d := range g.dinosaurs {
-			if d.isActive && g.enemies.checkCollisions(d) {
-				d.isActive = false
+		for k, d := range g.dinosaurs {
+			if g.enemies.checkCollisions(d) {
+				delete(g.dinosaurs, k)
+
+				if g.neat {
+					d.org.Fitness = -1
+				}
 			}
 		}
 
-		if g.dinosaurs.notExists() {
-			if g.count == 1 {
+		if len(g.dinosaurs) == 0 {
+			if !g.neat {
 				g.endGame(win)
 			}
 
@@ -123,7 +129,14 @@ gameLoop:
 			gameSpeed += 1
 		}
 
-		g.dinosaurs.draw(win, gameSpeed)
+		for _, d := range g.dinosaurs {
+			d.draw(win, gameSpeed)
+
+			if g.neat {
+				d.org.Fitness += 0.5
+			}
+		}
+
 		g.road.draw(win, gameSpeed)
 		g.enemies.draw(win, gameSpeed)
 
@@ -133,17 +146,28 @@ gameLoop:
 			<-frameTick.C
 		}
 	}
-
-	g.reset()
 }
 
-func (g *Game) reset() {
-	g.road.reset()
-	g.enemies.reset()
-
-	for _, d := range g.dinosaurs {
-		d.reset()
+func newGame() (*Game, error) {
+	fonts, err := atlasTable(fontPath, []float64{bigSize, normalSize, smallSize})
+	if err != nil {
+		return nil, err
 	}
+
+	info := text.New(pixel.V(0, 0), fonts[normalSize])
+	info.Color = colornames.Black
+
+	r, err := initRoad()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Game{
+		fonts:   fonts,
+		info:    info,
+		road:    r,
+		enemies: initEnemies(),
+	}, nil
 }
 
 func (g *Game) showInfo(window *pixelgl.Window, txt string) {
